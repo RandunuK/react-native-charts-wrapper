@@ -8,13 +8,14 @@ import com.facebook.react.uimanager.ViewManager;
 import com.github.wuxudong.rncharts.charts.BarChartManager;
 import com.github.wuxudong.rncharts.charts.BubbleChartManager;
 import com.github.wuxudong.rncharts.charts.CandleStickChartManager;
+import com.github.wuxudong.rncharts.charts.CircularRadarChartManager;
 import com.github.wuxudong.rncharts.charts.CombinedChartManager;
 import com.github.wuxudong.rncharts.charts.HorizontalBarChartManager;
 import com.github.wuxudong.rncharts.charts.LineChartManager;
 import com.github.wuxudong.rncharts.charts.PieChartManager;
 import com.github.wuxudong.rncharts.charts.RadarChartManager;
-import com.github.wuxudong.rncharts.charts.ScatterChartManager;
 import com.github.wuxudong.rncharts.charts.RoundedBarChartManager;
+import com.github.wuxudong.rncharts.charts.ScatterChartManager;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -43,6 +44,7 @@ public class MPAndroidChartPackage implements ReactPackage {
                 new LineChartManager(),
                 new PieChartManager(),
                 new RadarChartManager(),
+                new CircularRadarChartManager(),
                 new ScatterChartManager(),
                 new CombinedChartManager()
         );

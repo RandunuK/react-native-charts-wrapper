@@ -8,9 +8,11 @@ import PieChart from './lib/PieChart';
 import RadarChart from './lib/RadarChart';
 import ScatterChart from './lib/ScatterChart';
 import CombinedChart from './lib/CombinedChart';
+import CircularRadarChart from './lib/CircularRadarChart';
 
 module.exports = {
   BarChart,
+  CircularRadarChart,
   RoundedBarChart,
   HorizontalBarChart,
   BubbleChart,
