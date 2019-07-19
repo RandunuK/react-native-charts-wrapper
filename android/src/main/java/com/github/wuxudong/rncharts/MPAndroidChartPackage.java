@@ -14,6 +14,7 @@ import com.github.wuxudong.rncharts.charts.LineChartManager;
 import com.github.wuxudong.rncharts.charts.PieChartManager;
 import com.github.wuxudong.rncharts.charts.RadarChartManager;
 import com.github.wuxudong.rncharts.charts.ScatterChartManager;
+import com.github.wuxudong.rncharts.charts.RoundedBarChartManager;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -35,6 +36,7 @@ public class MPAndroidChartPackage implements ReactPackage {
     public List<ViewManager> createViewManagers(ReactApplicationContext reactContext) {
         return Arrays.<ViewManager>asList(
                 new BarChartManager(),
+                new RoundedBarChartManager(),
                 new HorizontalBarChartManager(),
                 new BubbleChartManager(),
                 new CandleStickChartManager(),
