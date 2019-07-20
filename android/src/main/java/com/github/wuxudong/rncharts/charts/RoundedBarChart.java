@@ -52,9 +52,9 @@ public class RoundedBarChart extends BarLineChartBase<BarData> implements BarDat
     protected void init() {
         super.init();
 
-        mRenderer = new BarChartRenderer(this, mAnimator, mViewPortHandler);
+        //bar corner radius automaticaly assigend to barWidth/4; for more info check RoundedBarChartRenderer.java drawDataSet(..) method
         mRenderer = new RoundedBarChartRenderer(this,mAnimator,mViewPortHandler);
-        ((RoundedBarChartRenderer) mRenderer).setmRadius(20f);
+
         setHighlighter(new BarHighlighter(this));
 
         getXAxis().setSpaceMin(0.5f);

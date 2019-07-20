@@ -30,17 +30,17 @@ public class RoundedBarChartManager extends BarLineChartBaseManager<RoundedBarCh
     }
 
     @ReactProp(name = "drawValueAboveBar")
-    public void setDrawValueAboveBar(BarChart chart, boolean enabled) {
+    public void setDrawValueAboveBar(RoundedBarChart chart, boolean enabled) {
         chart.setDrawValueAboveBar(enabled);
     }
 
     @ReactProp(name = "drawBarShadow")
-    public void setDrawBarShadow(BarChart chart, boolean enabled) {
+    public void setDrawBarShadow(RoundedBarChart chart, boolean enabled) {
         chart.setDrawBarShadow(enabled);
     }
 
     @ReactProp(name = "highlightFullBarEnabled")
-    public void setHighlightFullBarEnabled(BarChart chart, boolean enabled) {
+    public void setHighlightFullBarEnabled(RoundedBarChart chart, boolean enabled) {
         chart.setHighlightFullBarEnabled(enabled);
     }
 }

@@ -21,7 +21,11 @@ public class RoundedBarChartRenderer extends BarChartRenderer {
 
     private float mRadius = 5f;
 
-    public void setmRadius(float mRadius) {
+    /**
+     * bar corner radius automatically assigned to barWidth/4
+     * @param mRadius
+     */
+    private void setmRadius(float mRadius) {
         this.mRadius = mRadius;
     }
 
@@ -86,18 +90,27 @@ public class RoundedBarChartRenderer extends BarChartRenderer {
 
         float phaseX = mAnimator.getPhaseX();
         float phaseY = mAnimator.getPhaseY();
-
+        float barWidth = mChart.getBarData().getBarWidth();
 
         // initialize the buffer
         BarBuffer buffer = mBarBuffers[index];
         buffer.setPhases(phaseX, phaseY);
         buffer.setDataSet(index);
-        buffer.setBarWidth(mChart.getBarData().getBarWidth());
+        buffer.setBarWidth(barWidth);
         buffer.setInverted(mChart.isInverted(dataSet.getAxisDependency()));
 
         buffer.feed(dataSet);
 
         trans.pointValuesToPixel(buffer.buffer);
+
+        /*
+        set bar corner radius
+        @TODO improve this
+        */
+        if(buffer.buffer.length>2){
+            float barCornerRadius =  Math.abs(buffer.buffer[2] - buffer.buffer[0])/4;
+            mRadius = barCornerRadius;
+        }
 
         // if multiple colors
         if (dataSet.getColors().size() > 1) {
@@ -154,7 +167,7 @@ public class RoundedBarChartRenderer extends BarChartRenderer {
                     break;
 
                 if (mChart.isDrawBarShadowEnabled()) {
-                    if (mRadius > 0){
+                    if (mRadius > 0) {
                         Path path = RoundedRect(buffer.buffer[j], mViewPortHandler.contentTop(),
                                 buffer.buffer[j + 2],
                                 mViewPortHandler.contentBottom(), mRadius, mRadius,
@@ -163,9 +176,7 @@ public class RoundedBarChartRenderer extends BarChartRenderer {
                         /*c.drawRoundRect(new RectF(buffer.buffer[j], mViewPortHandler.contentTop(),
                                 buffer.buffer[j + 2],
                                 mViewPortHandler.contentBottom()), mRadius, mRadius, mShadowPaint);*/
-                    }
-
-                    else
+                    } else
                         c.drawRect(buffer.buffer[j], buffer.buffer[j + 1], buffer.buffer[j + 2],
                                 buffer.buffer[j + 3], mRenderPaint);
                 }

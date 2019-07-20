@@ -1,5 +1,6 @@
 import BarChart from './lib/BarChart';
 import RoundedBarChart from './lib/RoundedBarChart';
+import RoundedHorizontalBarChart from './lib/RoundedHorizontalBarChart';
 import HorizontalBarChart from './lib/HorizontalBarChart';
 import BubbleChart from './lib/BubbleChart';
 import CandleStickChart from './lib/CandleStickChart';
@@ -14,6 +15,7 @@ module.exports = {
   BarChart,
   CircularRadarChart,
   RoundedBarChart,
+  RoundedHorizontalBarChart,
   HorizontalBarChart,
   BubbleChart,
   CandleStickChart,
