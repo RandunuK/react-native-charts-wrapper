@@ -10,10 +10,12 @@ import RadarChart from './lib/RadarChart';
 import ScatterChart from './lib/ScatterChart';
 import CombinedChart from './lib/CombinedChart';
 import CircularRadarChart from './lib/CircularRadarChart';
+import CircularRadarArcChart from './lib/CircularRadarArcChart';
 
 module.exports = {
   BarChart,
   CircularRadarChart,
+  CircularRadarArcChart,
   RoundedBarChart,
   RoundedHorizontalBarChart,
   HorizontalBarChart,

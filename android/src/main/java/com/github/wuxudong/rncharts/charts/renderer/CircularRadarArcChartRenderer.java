@@ -1,17 +1,16 @@
 package com.github.wuxudong.rncharts.charts.renderer;
 
 import android.graphics.Canvas;
-
-import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.DashPathEffect;
 import android.graphics.Paint;
 import android.graphics.Path;
+import android.graphics.PointF;
+import android.graphics.RectF;
 import android.graphics.drawable.Drawable;
 import android.util.Log;
 
 import com.github.mikephil.charting.animation.ChartAnimator;
-import com.github.mikephil.charting.charts.RadarChart;
 import com.github.mikephil.charting.data.RadarData;
 import com.github.mikephil.charting.data.RadarEntry;
 import com.github.mikephil.charting.formatter.ValueFormatter;
@@ -22,21 +21,26 @@ import com.github.mikephil.charting.utils.ColorTemplate;
 import com.github.mikephil.charting.utils.MPPointF;
 import com.github.mikephil.charting.utils.Utils;
 import com.github.mikephil.charting.utils.ViewPortHandler;
-import com.github.wuxudong.rncharts.charts.CircularRadarChart;
+import com.github.wuxudong.rncharts.charts.CircularRadarArcChart;
+
+import java.util.List;
+
+public class CircularRadarArcChartRenderer extends LineRadarRenderer {
 
 
-public class CircularRadarChartRenderer extends LineRadarRenderer {
-
-    protected CircularRadarChart mChart;
+    private static final String TAG = "CRadarArcChartRenderer";
+    protected CircularRadarArcChart mChart;
 
     /**
      * paint for drawing the web
      */
     protected Paint mWebPaint;
     protected Paint mHighlightCirclePaint;
+    final RectF oval = new RectF();
 
-    public CircularRadarChartRenderer(CircularRadarChart chart, ChartAnimator animator,
-                                      ViewPortHandler viewPortHandler) {
+
+    public CircularRadarArcChartRenderer(CircularRadarArcChart chart, ChartAnimator animator,
+                                         ViewPortHandler viewPortHandler) {
         super(animator, viewPortHandler);
         mChart = chart;
 
@@ -67,16 +71,37 @@ public class CircularRadarChartRenderer extends LineRadarRenderer {
         RadarData radarData = mChart.getData();
 
         int mostEntries = radarData.getMaxEntryCountSet().getEntryCount();
-
+        int dataSetCount = radarData.getDataSets().size();
+        int i = 0;
         for (IRadarDataSet set : radarData.getDataSets()) {
-
+            i++;
             if (set.isVisible()) {
-                drawDataSet(c, set, mostEntries);
+                drawDataSet(c, set, mostEntries, i == dataSetCount);
             }
         }
     }
 
     protected Path mDrawDataSetSurfacePathBuffer = new Path();
+
+    /**
+     * Calculate angle between two lines with two given points
+     *
+     * @param A1 First point first line
+     * @param A2 Second point first line
+     * @param B1 First point second line
+     * @param B2 Second point second line
+     * @return Angle between two lines in degrees
+     * <p>
+     * credits : https://stackoverflow.com/questions/3365171/calculating-the-angle-between-two-lines-without-having-to-calculate-the-slope
+     */
+
+    public static float angleBetween2Lines(MPPointF A1, MPPointF A2, MPPointF B1, MPPointF B2) {
+        float angle1 = (float) Math.atan2(A2.y - A1.y, A1.x - A2.x);
+        float angle2 = (float) Math.atan2(B2.y - B1.y, B1.x - B2.x);
+        float calculatedAngle = (float) Math.toDegrees(angle1 - angle2);
+        if (calculatedAngle < 0) calculatedAngle += 360;
+        return calculatedAngle;
+    }
 
     /**
      * Draws the RadarDataSet
@@ -85,7 +110,7 @@ public class CircularRadarChartRenderer extends LineRadarRenderer {
      * @param dataSet
      * @param mostEntries the entry count of the dataset with the most entries
      */
-    protected void drawDataSet(Canvas c, IRadarDataSet dataSet, int mostEntries) {
+    protected void drawDataSet(Canvas c, IRadarDataSet dataSet, int mostEntries, boolean isLastDataSet) {
 
         float phaseX = mAnimator.getPhaseX();
         float phaseY = mAnimator.getPhaseY();
@@ -95,16 +120,20 @@ public class CircularRadarChartRenderer extends LineRadarRenderer {
         // calculate the factor that is needed for transforming the value to
         // pixels
         float factor = mChart.getFactor();
-
+        float rotationAngle = mChart.getRotationAngle();
         MPPointF center = mChart.getCenterOffsets();
         MPPointF pOut = MPPointF.getInstance(0, 0);
+        MPPointF pOutPrevious = MPPointF.getInstance(0, 0);
+        MPPointF pOutFirstForLast = MPPointF.getInstance(0, 0);
         Path surface = mDrawDataSetSurfacePathBuffer;
         surface.reset();
 
+        float r = mChart.getRadius();
+
         boolean hasMovedToPoint = false;
+        float entryCount = dataSet.getEntryCount();
 
-        for (int j = 0; j < dataSet.getEntryCount(); j++) {
-
+        for (int j = 0; j < entryCount; j++) {
             mRenderPaint.setColor(dataSet.getColor(j));
 
             RadarEntry e = dataSet.getEntryForIndex(j);
@@ -119,14 +148,49 @@ public class CircularRadarChartRenderer extends LineRadarRenderer {
 
             if (!hasMovedToPoint) {
                 surface.moveTo(pOut.x, pOut.y);
+                if (isLastDataSet)
+                    pOutFirstForLast = MPPointF.getInstance(pOut.x, pOut.y);
                 hasMovedToPoint = true;
-            } else
-                surface.lineTo(pOut.x, pOut.y);
+
+            } else {
+                boolean xNotFromCenter = Math.abs(pOutPrevious.x - center.x) > 0;
+                boolean yNotFromCenter = Math.abs(pOutPrevious.y - center.y) > 0;
+                boolean xIsNotCenter = Math.abs(pOut.x - center.x) > 0;
+                boolean yIsNotCenter = Math.abs(pOut.y - center.y) > 0;
+                boolean xIsNotPrevious = Math.abs(pOutPrevious.x - pOut.x) > 0;
+                boolean yIsNotPrevious = Math.abs(pOutPrevious.y - pOut.y) > 0;
+
+                if ((xNotFromCenter || yNotFromCenter) && (xIsNotCenter || yIsNotCenter)) {
+                    float radius = (float) Math.sqrt(Math.pow(pOut.x - center.x, 2) + Math.pow(pOut.y - center.y, 2));
+                    oval.set(center.x - radius, center.y - radius, center.x + radius, center.y + radius);
+                    float sweepAngle = sliceangle;
+                    float startAngle = sliceangle * (j - 1) + rotationAngle;
+                    surface.arcTo(oval, startAngle, sweepAngle, false);
+                } else if (isLastDataSet && j == entryCount - 1) {
+                    boolean _xIsNotCenter = Math.abs(pOutFirstForLast.x - center.x) > 0;
+                    boolean _yIsNotCenter = Math.abs(pOutFirstForLast.y - center.y) > 0;
+                    if (_xIsNotCenter || _yIsNotCenter) {
+                        float radius = (float) Math.sqrt(Math.pow(pOut.x - center.x, 2) + Math.pow(pOut.y - center.y, 2));
+                        oval.set(center.x - radius, center.y - radius, center.x + radius, center.y + radius);
+                        float sweepAngle = sliceangle;
+                        float startAngle = sliceangle * (j) + rotationAngle;
+                        surface.arcTo(oval, startAngle, sweepAngle, false);
+                    }
+                } else if (yIsNotPrevious || xIsNotPrevious) {
+                    surface.lineTo(pOut.x, pOut.y);
+                    Log.e(TAG, "drawDataSet: lineTo");
+                }
+            }
+
+            pOutPrevious.x = pOut.getX();
+            pOutPrevious.y = pOut.getY();
+
         }
 
         if (dataSet.getEntryCount() > mostEntries) {
             // if this is not the largest set, draw a line to the center before closing
             surface.lineTo(center.x, center.y);
+            //Log.i("hasMovedToPoint center", center.x + "," + center.y);
         }
 
         surface.close();
@@ -135,10 +199,8 @@ public class CircularRadarChartRenderer extends LineRadarRenderer {
 
             final Drawable drawable = dataSet.getFillDrawable();
             if (drawable != null) {
-
                 drawFilledPath(c, surface, drawable);
             } else {
-
                 drawFilledPath(c, surface, dataSet.getFillColor(), dataSet.getFillAlpha());
             }
         }
@@ -152,6 +214,50 @@ public class CircularRadarChartRenderer extends LineRadarRenderer {
 
         MPPointF.recycleInstance(center);
         MPPointF.recycleInstance(pOut);
+    }
+
+    private boolean clipPathSupported() {
+        return Utils.getSDKInt() >= 18;
+    }
+
+    /**
+     * Draws the provided path in filled mode with the provided color and alpha.
+     * Special thanks to Angelo Suzuki (https://github.com/tinsukE) for this.
+     *
+     * @param c
+     * @param filledPath
+     * @param fillColor
+     * @param fillAlpha
+     */
+    @Override
+    protected void drawFilledPath(Canvas c, Path filledPath, int fillColor, int fillAlpha) {
+
+        int color = (fillAlpha << 24) | (fillColor & 0xffffff);
+
+        if (clipPathSupported()) {
+
+            int save = c.save();
+
+            c.clipPath(filledPath);
+
+            c.drawColor(color);
+            c.restoreToCount(save);
+        } else {
+
+            // save
+            Paint.Style previous = mRenderPaint.getStyle();
+            int previousColor = mRenderPaint.getColor();
+
+            // set
+            mRenderPaint.setStyle(Paint.Style.FILL);
+            mRenderPaint.setColor(color);
+
+            c.drawPath(filledPath, mRenderPaint);
+
+            // restore
+            mRenderPaint.setColor(previousColor);
+            mRenderPaint.setStyle(previous);
+        }
     }
 
     @Override
@@ -252,6 +358,10 @@ public class CircularRadarChartRenderer extends LineRadarRenderer {
         // pixels
         float factor = mChart.getFactor();
         float rotationangle = mChart.getRotationAngle();
+        RadarData radarData = mChart.getData();
+        List<IRadarDataSet> dataSets = radarData.getDataSets();
+        int[] colors = radarData.getColors();
+
 
         MPPointF center = mChart.getCenterOffsets();
 
@@ -261,7 +371,7 @@ public class CircularRadarChartRenderer extends LineRadarRenderer {
         mWebPaint.setAlpha(mChart.getWebAlpha());
 
         final int xIncrements = 1 + mChart.getSkipWebLineCount();
-        int maxEntryCount = mChart.getData().getMaxEntryCountSet().getEntryCount();
+        int maxEntryCount = radarData.getMaxEntryCountSet().getEntryCount();
 
         MPPointF p = MPPointF.getInstance(0, 0);
         for (int i = 0; i < maxEntryCount; i += xIncrements) {
@@ -286,33 +396,40 @@ public class CircularRadarChartRenderer extends LineRadarRenderer {
 
         MPPointF p1out = MPPointF.getInstance(0, 0);
         MPPointF p2out = MPPointF.getInstance(0, 0);
+        int entryCount = radarData.getEntryCount();
+        int colorsCount = colors.length;
         for (int j = 0; j < labelCount; j++) {
-
-            for (int i = 0; i < mChart.getData().getDataSetCount(); i++) {
+            for (int i = 0; i < colorsCount; i++) {
                 float r = (mChart.getYAxis().mEntries[j] - mChart.getYChartMin()) * factor;
 
                 Utils.getPosition(center, r, sliceangle * i + rotationangle, p1out);
                 Utils.getPosition(center, r, sliceangle * (i + 1) + rotationangle, p2out);
 
-                //c.drawLine(p1out.x, p1out.y, p2out.x, p2out.y, mWebPaint);
+
                 if (labelCount - 1 == j) {
                     mWebPaint.setPathEffect(null);
+                    mWebPaint.setStyle(Paint.Style.FILL);
+                    int fillColor = dataSets.get(i).getFillColor();
+                    mWebPaint.setColor(fillColor);
+                    mWebPaint.setAntiAlias(true);
+                    mWebPaint.setAlpha(mChart.getWebAlpha());
+                    float radius = r;
+                    oval.set(center.x - radius, center.y - radius, center.x + radius, center.y + radius);
+
+                    float sweepAngle = sliceangle;//angleBetween2Lines(center,pOutPrevious,center,pOut);
+                    float startAngle = sliceangle * (i) + rotationangle;
+                    //surface.arcTo(oval, startAngle, sweepAngle, false);
+                    c.drawArc(oval, startAngle, sweepAngle, true, mWebPaint);
+                    //c.drawLine(p1out.x, p1out.y, p2out.x, p2out.y, mWebPaint);
+
+                    //c.drawCircle(center.x, center.y, r / 3f, mWebPaint);
+                    mWebPaint.setColor(mChart.getWebColorInner());
+                    mWebPaint.setStyle(Paint.Style.STROKE);
+
                 } else {
                     mWebPaint.setPathEffect(dashPath);
                 }
-                c.drawCircle(center.x, center.y, r, mWebPaint);
-
-                /**
-                 * @TODO special case for draw middle circle
-                 */
-                if (mChart.getData().getDataSetByIndex(0).getFillAlpha() == 256) {
-                    mWebPaint.setStyle(Paint.Style.FILL_AND_STROKE);
-                    mWebPaint.setColor(mChart.getWebColorInner());
-                    mWebPaint.setAlpha(mChart.getWebAlpha());
-                    c.drawCircle(center.x, center.y, r / 3, mWebPaint);
-                    mWebPaint.setStyle(Paint.Style.STROKE);
-                }
-
+                //c.drawCircle(center.x, center.y, r, mWebPaint);
             }
 
 
