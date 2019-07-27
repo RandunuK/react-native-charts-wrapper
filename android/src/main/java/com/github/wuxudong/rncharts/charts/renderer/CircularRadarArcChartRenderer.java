@@ -5,7 +5,6 @@ import android.graphics.Color;
 import android.graphics.DashPathEffect;
 import android.graphics.Paint;
 import android.graphics.Path;
-import android.graphics.PointF;
 import android.graphics.RectF;
 import android.graphics.drawable.Drawable;
 import android.util.Log;
@@ -419,7 +418,8 @@ public class CircularRadarArcChartRenderer extends LineRadarRenderer {
                     float lineHeight = fm.bottom - fm.top + fm.leading;
                     IRadarDataSet ds = radarData.getDataSetByIndex(i);
                     RadarEntry rdata = ds.getEntryForIndex(i);
-                    StringBuffer valueBuffer =  new StringBuffer(String.format ("%.1f", rdata.getValue())).append("%");
+                    float value = rdata.getValue();
+                    StringBuffer valueBuffer = new StringBuffer(String.format("%.1f", value < 0 ? 0f : value)).append("%");
 
                     if(i>1 && i<4){
                         textPath.addArc (oval,startAngle+sweepAngle , -sweepAngle);
