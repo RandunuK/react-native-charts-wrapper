@@ -411,9 +411,6 @@ public class CircularRadarArcChartRenderer extends LineRadarRenderer {
                     float sweepAngle = sliceangle;//angleBetween2Lines(center,pOutPrevious,center,pOut);
                     float startAngle = sliceangle * (i) + rotationangle;
                     c.drawArc(oval, startAngle, sweepAngle, true, mWebPaint);
-                    int spSize = 20;
-                    float scaledSizeInPixels = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_SP,
-                            spSize, mChart.getResources().getDisplayMetrics());
                     mWebPaint.setTextSize(legendSize);
                     mWebPaint.setTextAlign(Paint.Align.CENTER);
                     mWebPaint.setAlpha(255);
