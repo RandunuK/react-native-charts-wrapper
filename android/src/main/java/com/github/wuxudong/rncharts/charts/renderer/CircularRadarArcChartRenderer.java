@@ -178,7 +178,6 @@ public class CircularRadarArcChartRenderer extends LineRadarRenderer {
                     }
                 } else if (yIsNotPrevious || xIsNotPrevious) {
                     surface.lineTo(pOut.x, pOut.y);
-                    Log.e(TAG, "drawDataSet: lineTo");
                 }
             }
 
@@ -188,9 +187,9 @@ public class CircularRadarArcChartRenderer extends LineRadarRenderer {
         }
 
         if (dataSet.getEntryCount() > mostEntries) {
+            
             // if this is not the largest set, draw a line to the center before closing
             surface.lineTo(center.x, center.y);
-            //Log.i("hasMovedToPoint center", center.x + "," + center.y);
         }
 
         surface.close();
@@ -347,12 +346,12 @@ public class CircularRadarArcChartRenderer extends LineRadarRenderer {
 
     @Override
     public void drawExtras(Canvas c) {
-        drawCircularWeb(c);
+        drawCircularWebAndValuePercentages(c);
     }
 
-    protected void drawCircularWeb(Canvas c) {
-
+    protected void drawCircularWebAndValuePercentages(Canvas c) {
         float sliceangle = mChart.getSliceAngle();
+        float legendSize = mChart.getLegend().getTextSize();
 
         // calculate the factor that is needed for transforming the value to
         // pixels
@@ -361,21 +360,19 @@ public class CircularRadarArcChartRenderer extends LineRadarRenderer {
         RadarData radarData = mChart.getData();
         List<IRadarDataSet> dataSets = radarData.getDataSets();
         int[] colors = radarData.getColors();
-
-
+        Path textPath = mDrawDataSetSurfacePathBuffer;
+        textPath.reset();
         MPPointF center = mChart.getCenterOffsets();
 
         // draw the web lines that come from the center
         mWebPaint.setStrokeWidth(mChart.getWebLineWidth());
         mWebPaint.setColor(mChart.getWebColor());
         mWebPaint.setAlpha(mChart.getWebAlpha());
-
         final int xIncrements = 1 + mChart.getSkipWebLineCount();
         int maxEntryCount = radarData.getMaxEntryCountSet().getEntryCount();
-
         MPPointF p = MPPointF.getInstance(0, 0);
-        for (int i = 0; i < maxEntryCount; i += xIncrements) {
 
+        for (int i = 0; i < maxEntryCount; i += xIncrements) {
             Utils.getPosition(
                     center,
                     mChart.getYRange() * factor,
@@ -391,22 +388,18 @@ public class CircularRadarArcChartRenderer extends LineRadarRenderer {
         mWebPaint.setAlpha(mChart.getWebAlpha());
         DashPathEffect dashPath = new DashPathEffect(new float[]{15, 15}, (float) 15.0);
         mWebPaint.setPathEffect(dashPath);
-
         int labelCount = mChart.getYAxis().mEntryCount;
-
         MPPointF p1out = MPPointF.getInstance(0, 0);
         MPPointF p2out = MPPointF.getInstance(0, 0);
-        int entryCount = radarData.getEntryCount();
         int colorsCount = colors.length;
         for (int j = 0; j < labelCount; j++) {
             for (int i = 0; i < colorsCount; i++) {
                 float r = (mChart.getYAxis().mEntries[j] - mChart.getYChartMin()) * factor;
-
                 Utils.getPosition(center, r, sliceangle * i + rotationangle, p1out);
                 Utils.getPosition(center, r, sliceangle * (i + 1) + rotationangle, p2out);
 
-
                 if (labelCount - 1 == j) {
+                    textPath.reset();
                     mWebPaint.setPathEffect(null);
                     mWebPaint.setStyle(Paint.Style.FILL);
                     int fillColor = dataSets.get(i).getFillColor();
@@ -415,24 +408,37 @@ public class CircularRadarArcChartRenderer extends LineRadarRenderer {
                     mWebPaint.setAlpha(mChart.getWebAlpha());
                     float radius = r;
                     oval.set(center.x - radius, center.y - radius, center.x + radius, center.y + radius);
-
                     float sweepAngle = sliceangle;//angleBetween2Lines(center,pOutPrevious,center,pOut);
                     float startAngle = sliceangle * (i) + rotationangle;
-                    //surface.arcTo(oval, startAngle, sweepAngle, false);
                     c.drawArc(oval, startAngle, sweepAngle, true, mWebPaint);
-                    //c.drawLine(p1out.x, p1out.y, p2out.x, p2out.y, mWebPaint);
+                    int spSize = 20;
+                    float scaledSizeInPixels = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_SP,
+                            spSize, mChart.getResources().getDisplayMetrics());
+                    mWebPaint.setTextSize(legendSize);
+                    mWebPaint.setTextAlign(Paint.Align.CENTER);
+                    mWebPaint.setAlpha(255);
+                    Paint.FontMetrics fm = mWebPaint.getFontMetrics();
+                    float textHeight = fm.descent - fm.ascent;
+                    float lineHeight = fm.bottom - fm.top + fm.leading;
+                    IRadarDataSet ds = radarData.getDataSetByIndex(i);
+                    RadarEntry rdata = ds.getEntryForIndex(i);
+                    StringBuffer valueBuffer =  new StringBuffer(String.format ("%.1f", rdata.getValue())).append("%");
 
-                    //c.drawCircle(center.x, center.y, r / 3f, mWebPaint);
+                    if(i>1 && i<4){
+                        textPath.addArc (oval,startAngle+sweepAngle , -sweepAngle);
+                        c.drawTextOnPath(ds.getLabel(), textPath, 0, textHeight-(scaledSizeInPixels*2/7), mWebPaint);
+                        c.drawTextOnPath(valueBuffer.toString(), textPath, 0, textHeight-(scaledSizeInPixels*3/7)+lineHeight, mWebPaint);
+                    }else{
+                        textPath.addArc (oval,startAngle , sweepAngle);
+                        c.drawTextOnPath(ds.getLabel(), textPath, 0, -(scaledSizeInPixels/7), mWebPaint);
+                        c.drawTextOnPath(valueBuffer.toString(), textPath, 0, -lineHeight, mWebPaint);
+                    }
                     mWebPaint.setColor(mChart.getWebColorInner());
                     mWebPaint.setStyle(Paint.Style.STROKE);
-
                 } else {
                     mWebPaint.setPathEffect(dashPath);
                 }
-                //c.drawCircle(center.x, center.y, r, mWebPaint);
             }
-
-
         }
         MPPointF.recycleInstance(p1out);
         MPPointF.recycleInstance(p2out);

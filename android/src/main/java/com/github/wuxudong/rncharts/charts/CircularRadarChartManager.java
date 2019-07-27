@@ -39,10 +39,8 @@ public class CircularRadarChartManager extends YAxisChartBase<CircularRadarChart
     public void setYAxis(Chart chart, ReadableMap propMap) {
         CircularRadarChart radarChart = (CircularRadarChart) chart;
         YAxis axis = radarChart.getYAxis();
-
         setCommonAxisConfig(chart, axis, propMap);
         setYAxisConfig(axis, propMap);
-        Log.d("getAxisMaximum", "getYAxis: " + axis.getAxisMaximum());
     }
 
     @ReactProp(name = "skipWebLineCount")
