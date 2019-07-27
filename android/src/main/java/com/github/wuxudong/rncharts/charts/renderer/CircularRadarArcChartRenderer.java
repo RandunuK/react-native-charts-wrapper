@@ -352,7 +352,7 @@ public class CircularRadarArcChartRenderer extends LineRadarRenderer {
     protected void drawCircularWebAndValuePercentages(Canvas c) {
         float sliceangle = mChart.getSliceAngle();
         float legendSize = mChart.getLegend().getTextSize();
-
+        float webLineWidth = mChart.getWebLineWidth();
         // calculate the factor that is needed for transforming the value to
         // pixels
         float factor = mChart.getFactor();
@@ -365,7 +365,7 @@ public class CircularRadarArcChartRenderer extends LineRadarRenderer {
         MPPointF center = mChart.getCenterOffsets();
 
         // draw the web lines that come from the center
-        mWebPaint.setStrokeWidth(mChart.getWebLineWidth());
+        mWebPaint.setStrokeWidth(webLineWidth);
         mWebPaint.setColor(mChart.getWebColor());
         mWebPaint.setAlpha(mChart.getWebAlpha());
         final int xIncrements = 1 + mChart.getSkipWebLineCount();
@@ -426,11 +426,11 @@ public class CircularRadarArcChartRenderer extends LineRadarRenderer {
 
                     if(i>1 && i<4){
                         textPath.addArc (oval,startAngle+sweepAngle , -sweepAngle);
-                        c.drawTextOnPath(ds.getLabel(), textPath, 0, textHeight-(scaledSizeInPixels*2/7), mWebPaint);
-                        c.drawTextOnPath(valueBuffer.toString(), textPath, 0, textHeight-(scaledSizeInPixels*3/7)+lineHeight, mWebPaint);
+                        c.drawTextOnPath(ds.getLabel(), textPath, 0, textHeight-(legendSize*2/webLineWidth), mWebPaint);
+                        c.drawTextOnPath(valueBuffer.toString(), textPath, 0, textHeight-(legendSize*3/webLineWidth)+lineHeight, mWebPaint);
                     }else{
                         textPath.addArc (oval,startAngle , sweepAngle);
-                        c.drawTextOnPath(ds.getLabel(), textPath, 0, -(scaledSizeInPixels/7), mWebPaint);
+                        c.drawTextOnPath(ds.getLabel(), textPath, 0, -(legendSize/webLineWidth), mWebPaint);
                         c.drawTextOnPath(valueBuffer.toString(), textPath, 0, -lineHeight, mWebPaint);
                     }
                     mWebPaint.setColor(mChart.getWebColorInner());
