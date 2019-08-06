@@ -4,16 +4,17 @@ package com.github.wuxudong.rncharts.charts;
 import android.util.Log;
 
 import com.facebook.react.bridge.ReadableMap;
+import com.facebook.react.bridge.ReadableType;
 import com.facebook.react.uimanager.ThemedReactContext;
 import com.facebook.react.uimanager.annotations.ReactProp;
 import com.github.mikephil.charting.charts.Chart;
-import com.github.mikephil.charting.charts.RadarChart;
 import com.github.mikephil.charting.components.YAxis;
 import com.github.mikephil.charting.data.RadarEntry;
 import com.github.wuxudong.rncharts.data.DataExtract;
 import com.github.wuxudong.rncharts.data.RadarDataExtract;
 import com.github.wuxudong.rncharts.listener.RNOnChartGestureListener;
 import com.github.wuxudong.rncharts.listener.RNOnChartValueSelectedListener;
+import com.github.wuxudong.rncharts.utils.BridgeUtils;
 
 public class CircularRadarChartManager extends YAxisChartBase<CircularRadarChart, RadarEntry> {
 
@@ -99,5 +100,22 @@ public class CircularRadarChartManager extends YAxisChartBase<CircularRadarChart
         chart.setRotationAngle(angle);
     }
 
+    @ReactProp(name = "extraOffsets")
+    public void setExtraOffsets(CircularRadarChart chart, ReadableMap propMap) {
+        double left = 0, top = 0, right = 0, bottom = 0;
 
+        if (BridgeUtils.validate(propMap, ReadableType.Number, "left")) {
+            left = propMap.getDouble("left");
+        }
+        if (BridgeUtils.validate(propMap, ReadableType.Number, "top")) {
+            top = propMap.getDouble("top");
+        }
+        if (BridgeUtils.validate(propMap, ReadableType.Number, "right")) {
+            right = propMap.getDouble("right");
+        }
+        if (BridgeUtils.validate(propMap, ReadableType.Number, "bottom")) {
+            bottom = propMap.getDouble("bottom");
+        }
+        chart.setExtraOffsets((float) left, (float) top, (float) right, (float) bottom);
+    }
 }

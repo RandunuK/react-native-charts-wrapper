@@ -198,9 +198,10 @@ public class CircularRadarChartRenderer extends LineRadarRenderer {
                         sliceangle * j * phaseX + mChart.getRotationAngle(),
                         pOut);
 
-                if (dataSet.isDrawValuesEnabled()) {
-                    drawValue(c, formatter.getRadarLabel(entry), pOut.x, pOut.y - yoffset, dataSet.getValueTextColor(j));
-                }
+                        if (dataSet.isDrawValuesEnabled() && entry.getY() > 5) {
+                            drawValue(c, formatter.getRadarLabel(entry), pOut.x, pOut.y - yoffset,
+                                    dataSet.getValueTextColor(j));
+                        }
 
                 if (entry.getIcon() != null && dataSet.isDrawIconsEnabled()) {
 
