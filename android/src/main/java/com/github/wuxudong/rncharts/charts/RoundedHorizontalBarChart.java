@@ -56,6 +56,21 @@ public class RoundedHorizontalBarChart  extends BarChart {
         mXAxisRenderer = new XAxisRendererHorizontalBarChart(mViewPortHandler, mXAxis, mLeftAxisTransformer, this);
     }
 
+    @Override
+    protected void calcMinMax() {
+
+        if (true) {
+            mXAxis.calculate(mData.getXMin() - mData.getBarWidth() / 2f, mData.getXMax() + mData.getBarWidth() / 2f);
+        } else {
+            mXAxis.calculate(mData.getXMin(), mData.getXMax());
+        }
+
+        // calculate axis range (min / max) according to provided data
+        mAxisLeft.calculate(mData.getYMin(YAxis.AxisDependency.LEFT), mData.getYMax(YAxis.AxisDependency.LEFT));
+        mAxisRight.calculate(mData.getYMin(YAxis.AxisDependency.RIGHT), mData.getYMax(YAxis.AxisDependency
+                .RIGHT));
+    }
+
     private RectF mOffsetsBuffer = new RectF();
 
     @Override
@@ -183,7 +198,6 @@ public class RoundedHorizontalBarChart  extends BarChart {
         vals[1] = e.getX();
 
         getTransformer(axis).pointValuesToPixel(vals);
-
         return MPPointF.getInstance(vals[0], vals[1]);
     }
 

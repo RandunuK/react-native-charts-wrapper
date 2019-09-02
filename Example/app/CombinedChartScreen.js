@@ -138,7 +138,6 @@ export default class Combined extends Component {
               close: 25
             }],
             label: 'Company A',
-
             config: {
               drawValues: false,
               axisDependency: "RIGHT",
