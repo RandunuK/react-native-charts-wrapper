@@ -189,6 +189,7 @@ public class RoundedHorizontalBarChartRenderer extends HorizontalBarChartRendere
                         HashMap<String, String> entryDataMap = (HashMap<String, String>) entry.getData();
 
                         String marker = entryDataMap.containsKey("marker") ? entryDataMap.get("marker") : "";
+                        marker =  val > 0.0f ? marker : " ";
                         String formattedValue = marker.length() > 0 ? marker : formatter.getBarLabel(entry);
 
                         // calculate the correct offset depending on the draw position of the value
