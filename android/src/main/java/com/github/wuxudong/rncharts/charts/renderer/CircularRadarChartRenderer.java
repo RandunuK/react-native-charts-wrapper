@@ -287,6 +287,7 @@ public class CircularRadarChartRenderer extends LineRadarRenderer {
 
         MPPointF p1out = MPPointF.getInstance(0, 0);
         MPPointF p2out = MPPointF.getInstance(0, 0);
+
         for (int j = 0; j < labelCount; j++) {
 
             for (int i = 0; i < mChart.getData().getDataSetCount(); i++) {
@@ -313,9 +314,7 @@ public class CircularRadarChartRenderer extends LineRadarRenderer {
                     c.drawCircle(center.x, center.y, r / 3, mWebPaint);
                     mWebPaint.setStyle(Paint.Style.STROKE);
                 }
-
             }
-
 
         }
         MPPointF.recycleInstance(p1out);
